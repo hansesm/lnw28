@@ -1,0 +1,7 @@
+.venv
+.git
+.gitignore
+.wrangler
+node_modules
+*.py
+.DS_Store
