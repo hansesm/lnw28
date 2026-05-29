@@ -226,11 +226,46 @@
 
     /* LEGAL */
     .legal { background: var(--paper-alt); border-top: 1px solid var(--line); }
-    .legal h2 { color: var(--navy); font-size: clamp(1.2rem, 3.5vw, 1.6rem); margin-bottom: 0.75rem; }
     .legal h3 { color: var(--navy); font-size: 1rem; margin: 1.25rem 0 0.35rem; }
     .legal p { color: var(--muted); margin-bottom: 0.6rem; max-width: 70ch; }
     .legal a { color: var(--red); }
-    .legal .block { margin-bottom: 2.5rem; }
+
+    details.legal-box {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--navy);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 10px rgba(14,28,46,0.05);
+      overflow: hidden;
+    }
+    details.legal-box > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 1.1rem 1.35rem;
+      font-weight: 800;
+      color: var(--navy);
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      user-select: none;
+    }
+    details.legal-box > summary::-webkit-details-marker { display: none; }
+    details.legal-box > summary::after {
+      content: "+";
+      color: var(--red);
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      transition: transform 0.2s;
+    }
+    details.legal-box[open] > summary { border-bottom: 1px solid var(--line); }
+    details.legal-box[open] > summary::after { content: "\2013"; }
+    details.legal-box > summary:hover { color: var(--red); }
+    .legal-body { padding: 0.5rem 1.35rem 1.35rem; }
+    .legal-body > h3:first-child { margin-top: 0.75rem; }
 
     /* FOOTER */
     footer {
@@ -240,7 +275,15 @@
       color: #c3cdd9;
       font-size: 0.9rem;
     }
-    footer img { height: 40px; width: auto; margin-bottom: 0.9rem; filter: brightness(0) invert(1); opacity: 0.9; }
+    footer img {
+      height: 44px;
+      width: auto;
+      margin-bottom: 1rem;
+      background: #fff;
+      padding: 0.55rem 0.85rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
     footer strong { color: #fff; }
     footer nav { margin-top: 1rem; }
     footer nav a { color: #fff; text-decoration: none; font-weight: 700; margin: 0 0.6rem; }
@@ -320,11 +363,13 @@
         <p>Details zum Ablauf und zur Anmeldung werden im Laufe des Jahres 2027 bekannt gegeben.</p>
       </div>
     </section>
-    <section class="legal" id="impressum">
+    <section class="legal">
       <div class="wrap">
-        <div class="block">
-          <span class="sec-head">Rechtliches</span>
-          <h2>Impressum</h2>
+        <span class="sec-head">Rechtliches</span>
+
+        <details class="legal-box" id="impressum">
+          <summary>Impressum</summary>
+          <div class="legal-body">
           <h3>Angaben gemäß § 5 DDG</h3>
           <p>
             Michael Hanses<br />
@@ -333,22 +378,24 @@
             57392 Schmallenberg
           </p>
           <h3>Kontakt</h3>
-          <p>E-Mail: <a href="mailto:info@lnw28.de">info@lnw28.de</a></p>
+          <p>E-Mail: <a href="mailto:webmaster@lnw28.de">webmaster@lnw28.de</a></p>
           <h3>Haftung für Inhalte</h3>
           <p>Die Inhalte dieser Seiten wurden mit größtmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen.</p>
           <h3>Haftung für Links</h3>
           <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
           <h3>Urheberrecht</h3>
           <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Beiträge Dritter sind als solche gekennzeichnet.</p>
-        </div>
+          </div>
+        </details>
 
-        <div class="block" id="datenschutz">
-          <h2>Datenschutzerklärung</h2>
+        <details class="legal-box" id="datenschutz">
+          <summary>Datenschutzerklärung</summary>
+          <div class="legal-body">
           <h3>1. Verantwortlicher</h3>
           <p>
             Michael Hanses, Tobias Gacke<br />
             Schützenstraße 3, 57392 Schmallenberg<br />
-            E-Mail: <a href="mailto:info@lnw28.de">info@lnw28.de</a>
+            E-Mail: <a href="mailto:webmaster@lnw28.de">webmaster@lnw28.de</a>
           </p>
           <h3>2. Allgemeines</h3>
           <p>Der Schutz Ihrer personenbezogenen Daten ist uns wichtig. Wir verarbeiten Ihre Daten ausschließlich auf Grundlage der gesetzlichen Bestimmungen (DSGVO, BDSG, TDDDG). Diese Website dient ausschließlich der Information über die Veranstaltung und erhebt keine Daten über ein Kontaktformular.</p>
@@ -362,7 +409,8 @@
           <p>Unsere Seite verlinkt auf externe Websites (z.&nbsp;B. feuerwehr-hsk.de, feuerwehr-schmallenberg.de). Beim Anklicken gelten die Datenschutzbestimmungen der jeweiligen Anbieter.</p>
           <h3>7. Ihre Rechte</h3>
           <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit sowie Widerspruch. Zudem steht Ihnen ein Beschwerderecht bei einer Aufsichtsbehörde zu. Wenden Sie sich dazu an die oben genannte Kontaktadresse.</p>
-        </div>
+          </div>
+        </details>
       </div>
     </section>
   </main>
@@ -390,6 +438,23 @@
         var consent = document.getElementById('mapConsent');
         consent.parentNode.replaceChild(iframe, consent);
       });
+    })();
+
+    // open the matching legal card when its link/hash is used
+    (function () {
+      function openTarget(id) {
+        var el = document.getElementById(id);
+        if (el && el.tagName.toLowerCase() === 'details') {
+          el.open = true;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+      document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        a.addEventListener('click', function () {
+          openTarget(a.getAttribute('href').slice(1));
+        });
+      });
+      if (location.hash) openTarget(location.hash.slice(1));
     })();
   </script>
 
