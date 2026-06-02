@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Leistungsnachweis 2028 – Oberkirchen/Nordenau</title>
-  <meta name="description" content="Leistungsnachweis der Feuerwehren im HSK 2028 – Ausrichter Stadt Schmallenberg, Löschgruppen Oberkirchen &amp; Nordenau. 30.09.2028 in Schmallenberg-Oberkirchen." />
+  <meta name="description" content="Leistungsnachweis der Feuerwehren im HSK 2028 – Ausrichter Stadt Schmallenberg, Löschgruppen Oberkirchen &amp; Nordenau. 23.09.2028 in Schmallenberg-Oberkirchen." />
   <link rel="icon" href="logo.png" />
   <style>
     :root {
@@ -224,6 +224,43 @@
     .link-card span.sub { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: none; letter-spacing: 0; }
     .link-card .arrow { color: var(--red); font-size: 1.3rem; flex-shrink: 0; }
 
+    /* COUNTDOWN */
+    .countdown { text-align: center; padding: 0.5rem 0 2.5rem; }
+    .countdown h2 {
+      color: var(--navy);
+      font-size: clamp(1.2rem, 3.5vw, 1.7rem);
+      margin-bottom: 1.25rem;
+    }
+    .cd-grid {
+      display: flex;
+      justify-content: center;
+      gap: clamp(0.5rem, 2.5vw, 1.25rem);
+      flex-wrap: wrap;
+    }
+    .cd-unit {
+      min-width: clamp(64px, 18vw, 110px);
+      padding: 1rem 0.5rem;
+      background: var(--navy);
+      color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(14,28,46,0.18);
+    }
+    .cd-num {
+      display: block;
+      font-size: clamp(1.8rem, 7vw, 3rem);
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .cd-label {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+    }
+
     /* LEGAL */
     .legal { background: var(--paper-alt); border-top: 1px solid var(--line); }
     .legal h3 { color: var(--navy); font-size: 1rem; margin: 1.25rem 0 0.35rem; }
@@ -295,7 +332,7 @@
   <div class="topbar">
     <div class="wrap">
       <img src="Logo_FF_Schmallenberg.png" alt="Feuerwehr Stadt Schmallenberg" />
-      <span class="org">Löschgruppen<br />Nordenau &amp; Oberkirchen</span>
+      <span class="org">Löschgruppen<br />Oberkirchen &amp; Nordenau</span>
     </div>
   </div>
 
@@ -303,8 +340,8 @@
     <div class="wrap">
       <img class="logo" src="logo.png" alt="Logo Leistungsnachweis Oberkirchen/Nordenau 2028" />
       <h1>Leistungsnachweis<br /><span class="accent">der Feuerwehren im HSK</span></h1>
-      <p class="sub">Ausrichter: Stadt Schmallenberg &middot; Löschgruppen Nordenau &amp; Oberkirchen</p>
-      <span class="date-badge">30.09.2028</span>
+      <p class="sub">Ausrichter: Stadt Schmallenberg &middot; Löschgruppen Oberkirchen &amp; Nordenau</p>
+      <span class="date-badge">23.09.2028</span>
     </div>
   </header>
 
@@ -315,7 +352,7 @@
         <div class="card">
           <div class="icon">📅</div>
           <h3>Datum</h3>
-          <p>30. September 2028</p>
+          <p>23. September 2028</p>
         </div>
         <div class="card">
           <div class="icon">📍</div>
@@ -325,7 +362,7 @@
         <div class="card">
           <div class="icon">🚒</div>
           <h3>Ausrichter</h3>
-          <p>Löschgruppen Nordenau &amp; Oberkirchen</p>
+          <p>Löschgruppen Oberkirchen &amp; Nordenau</p>
         </div>
       </div>
     </section>
@@ -361,6 +398,17 @@
       <div class="notice">
         <h2>Weitere Informationen folgen</h2>
         <p>Details zum Ablauf und zur Anmeldung werden im Laufe des Jahres 2027 bekannt gegeben.</p>
+      </div>
+    </section>
+    <section class="wrap">
+      <div class="countdown">
+        <h2>Countdown bis zum Leistungsnachweis</h2>
+        <div class="cd-grid" id="countdown" role="timer" aria-live="off">
+          <div class="cd-unit"><span class="cd-num" id="cd-days">–</span><span class="cd-label">Tage</span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-hours">–</span><span class="cd-label">Stunden</span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-mins">–</span><span class="cd-label">Minuten</span></div>
+          <div class="cd-unit"><span class="cd-num" id="cd-secs">–</span><span class="cd-label">Sekunden</span></div>
+        </div>
       </div>
     </section>
     <section class="legal">
@@ -418,7 +466,7 @@
   <footer>
     <img src="Logo_FF_Schmallenberg.png" alt="Feuerwehr Stadt Schmallenberg" />
     <p><strong>Leistungsnachweis der Feuerwehren im HSK 2028</strong></p>
-    <p>Stadt Schmallenberg &middot; Löschgruppen Nordenau &amp; Oberkirchen</p>
+    <p>Stadt Schmallenberg &middot; Löschgruppen Oberkirchen &amp; Nordenau</p>
     <nav>
       <a href="#impressum">Impressum</a>
       <a href="#datenschutz">Datenschutz</a>
@@ -438,6 +486,34 @@
         var consent = document.getElementById('mapConsent');
         consent.parentNode.replaceChild(iframe, consent);
       });
+    })();
+
+    // countdown to event date (23.09.2028, CEST = UTC+2)
+    (function () {
+      var target = new Date('2028-09-23T08:00:00+02:00').getTime();
+      var els = {
+        days: document.getElementById('cd-days'),
+        hours: document.getElementById('cd-hours'),
+        mins: document.getElementById('cd-mins'),
+        secs: document.getElementById('cd-secs')
+      };
+      if (!els.days) return;
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+      function tick() {
+        var diff = target - Date.now();
+        if (diff <= 0) {
+          els.days.textContent = els.hours.textContent = els.mins.textContent = els.secs.textContent = '0';
+          clearInterval(timer);
+          return;
+        }
+        var s = Math.floor(diff / 1000);
+        els.days.textContent = Math.floor(s / 86400);
+        els.hours.textContent = pad(Math.floor(s % 86400 / 3600));
+        els.mins.textContent = pad(Math.floor(s % 3600 / 60));
+        els.secs.textContent = pad(s % 60);
+      }
+      tick();
+      var timer = setInterval(tick, 1000);
     })();
 
     // open the matching legal card when its link/hash is used
