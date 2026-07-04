@@ -8,3 +8,7 @@
 # long cache for static assets (filenames are stable)
 /*.png
   Cache-Control: public, max-age=31536000, immutable
+
+# keep quiz out of search engines
+/zf-basis-quiz.html
+  X-Robots-Tag: noindex, nofollow
