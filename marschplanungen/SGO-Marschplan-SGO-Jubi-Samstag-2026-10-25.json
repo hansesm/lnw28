@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "app": "SGO Marschplanung",
+  "name": "SGO-Jubi-Samstag",
+  "savedAt": "2026-10-25T08:47:31.223Z",
+  "groups": [
+    {
+      "name": "Vorstand",
+      "count": 6,
+      "perRow": 3,
+      "color": "#c9a227"
+    },
+    {
+      "name": "Musikzug",
+      "count": 50,
+      "perRow": 5,
+      "color": "#1e5fbf"
+    },
+    {
+      "name": "Tambourcorps",
+      "count": 20,
+      "perRow": 4,
+      "color": "#c0392b"
+    },
+    {
+      "name": "1 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#2e7d32"
+    },
+    {
+      "name": "2 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#555555"
+    },
+    {
+      "name": "3 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#555555"
+    },
+    {
+      "name": "4 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#555555"
+    }
+  ],
+  "waypoints": [
+    {
+      "name": "Schützenhalle",
+      "lat": 51.158448,
+      "lng": 8.373438
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.15868,
+      "lng": 8.373154
+    },
+    {
+      "name": "Kirchweg",
+      "lat": 51.158367,
+      "lng": 8.371802
+    },
+    {
+      "name": "Kirchweg",
+      "lat": 51.158179,
+      "lng": 8.372778
+    },
+    {
+      "name": "B 236",
+      "lat": 51.160066,
+      "lng": 8.37693
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.158943,
+      "lng": 8.374559
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.157937,
+      "lng": 8.373658
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.157822,
+      "lng": 8.375257
+    },
+    {
+      "name": "Eggeweg",
+      "lat": 51.157116,
+      "lng": 8.375981
+    },
+    {
+      "name": "Eggeweg",
+      "lat": 51.157385,
+      "lng": 8.378384
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.157937,
+      "lng": 8.375444
+    },
+    {
+      "name": "Zur Lüttmecke",
+      "lat": 51.157486,
+      "lng": 8.374254
+    },
+    {
+      "name": "Zur Schlade",
+      "lat": 51.156995,
+      "lng": 8.374844
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.158468,
+      "lng": 8.376764
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.159141,
+      "lng": 8.377215
+    }
+  ],
+  "speedKmh": 5,
+  "stepLen": 0.75,
+  "rowSpacing": 1.5,
+  "lateralSpacing": 1,
+  "groupGap": 4,
+  "dotSize": 5,
+  "followRoads": true,
+  "routeProfile": "street",
+  "showWaypoints": true,
+  "showRoute": true,
+  "loop": false,
+  "follow": false,
+  "simSpeed": 30
+}

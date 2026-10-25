@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "app": "SGO Marschplanung",
+  "name": "SGO-Jubi-Sonntag",
+  "savedAt": "2026-10-25T09:03:36.483Z",
+  "groups": [
+    {
+      "name": "Musikzug",
+      "count": 50,
+      "perRow": 5,
+      "color": "#1e5fbf"
+    },
+    {
+      "name": "Tambourcorps",
+      "count": 20,
+      "perRow": 4,
+      "color": "#c0392b"
+    },
+    {
+      "name": "Vorstand",
+      "count": 18,
+      "perRow": 3,
+      "color": "#c9a227"
+    },
+    {
+      "name": "Hofstaat",
+      "count": 20,
+      "perRow": 2,
+      "color": "#545454"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#f05c5c"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#fd4949"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#fc0303"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#fe0101"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#ff0000"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#fa0000"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#fa0000"
+    },
+    {
+      "name": "Gastverein",
+      "count": 25,
+      "perRow": 4,
+      "color": "#ff0000"
+    },
+    {
+      "name": "Musikverein 2",
+      "count": 50,
+      "perRow": 5,
+      "color": "#1d1ac1"
+    },
+    {
+      "name": "Tambourcorps 2",
+      "count": 40,
+      "perRow": 4,
+      "color": "#301494"
+    },
+    {
+      "name": "3 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#555555"
+    },
+    {
+      "name": "4 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#555555"
+    },
+    {
+      "name": "2 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#555555"
+    },
+    {
+      "name": "1 Zug",
+      "count": 50,
+      "perRow": 4,
+      "color": "#121212"
+    }
+  ],
+  "waypoints": [
+    {
+      "name": "Schützenstraße",
+      "lat": 51.159108,
+      "lng": 8.376925
+    },
+    {
+      "name": "B 236",
+      "lat": 51.16009,
+      "lng": 8.377129
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.159309,
+      "lng": 8.375187
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.158636,
+      "lng": 8.373202
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.158872,
+      "lng": 8.371915
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.159538,
+      "lng": 8.368911
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.158657,
+      "lng": 8.372934
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.158394,
+      "lng": 8.37332
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.15762,
+      "lng": 8.374168
+    },
+    {
+      "name": "Zur Schlade",
+      "lat": 51.156988,
+      "lng": 8.374811
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.158065,
+      "lng": 8.373535
+    },
+    {
+      "name": "Galgenstraße",
+      "lat": 51.15863,
+      "lng": 8.373127
+    },
+    {
+      "name": "Alte Poststraße",
+      "lat": 51.159074,
+      "lng": 8.374844
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.16007,
+      "lng": 8.37714
+    },
+    {
+      "name": "Schützenstraße",
+      "lat": 51.159108,
+      "lng": 8.37714
+    }
+  ],
+  "speedKmh": 4,
+  "stepLen": 0.75,
+  "rowSpacing": 1.5,
+  "lateralSpacing": 1,
+  "groupGap": 4,
+  "dotSize": 6,
+  "followRoads": true,
+  "routeProfile": "street",
+  "showWaypoints": false,
+  "showRoute": false,
+  "loop": false,
+  "follow": true,
+  "simSpeed": 30
+}

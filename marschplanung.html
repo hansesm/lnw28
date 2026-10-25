@@ -295,7 +295,13 @@
           <button class="btn small" id="planDupBtn" type="button">Duplizieren</button>
           <button class="btn small danger" id="planDelBtn" type="button">Löschen</button>
         </div>
-        <div class="hint">Z. B. ein Plan je Festtag. Alle Pläne werden automatisch im Browser gespeichert; eine geladene JSON-Datei wird als neuer Plan hinzugefügt.</div>
+        <div class="row">
+          <select id="tplSel" aria-label="Vorlage laden" style="flex:1 1 auto" disabled>
+            <option value="">Vorlage laden…</option>
+          </select>
+        </div>
+        <div class="hint">Z. B. ein Plan je Festtag. Alle Pläne werden automatisch im Browser gespeichert; eine Vorlage oder geladene JSON-Datei wird als neuer Plan hinzugefügt.</div>
+        <div id="tplNotice" class="notice info" hidden></div>
       </div>
     </details>
 
@@ -1669,6 +1675,12 @@ function bindUI() {
     p.name = (state.name + ' (Kopie)').slice(0, 60);
     addPlan(p);
   });
+  document.getElementById('tplSel').addEventListener('change', function (e) {
+    const file = e.target.value;
+    const label = e.target.selectedOptions[0] ? e.target.selectedOptions[0].textContent : file;
+    e.target.value = '';
+    if (file) loadTemplate(file, label);
+  });
   document.getElementById('planDelBtn').addEventListener('click', function () {
     if (library.plans.length <= 1) return;
     if (!window.confirm('Plan „' + state.name + '“ löschen?')) return;
@@ -1773,6 +1785,50 @@ function fitRoute(forceWaypoints) {
 }
 /* Planauswahl (Dropdown, Namensfeld, Kopfzeile) aktualisieren.
    keepNameInput: beim Tippen im Namensfeld dessen Inhalt/Cursor nicht überschreiben */
+/* ---------- Vorlagen ----------
+   Liegen als JSON-Dateien im Ordner marschplanungen/ des Repos; die Liste steht in
+   marschplanungen/vorlagen.json ([{ "name": "...", "file": "..." }]).
+   Über file:// nicht verfügbar (Browser blockiert fetch), nur über http(s). */
+const TEMPLATE_DIR = 'marschplanungen/';
+function tplNotice(text, kind) {
+  const n = document.getElementById('tplNotice');
+  n.hidden = !text;
+  n.className = 'notice ' + (kind || 'info');
+  n.textContent = text || '';
+}
+async function loadTemplateList() {
+  const sel = document.getElementById('tplSel');
+  try {
+    const res = await fetch(TEMPLATE_DIR + 'vorlagen.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = await res.json();
+    (Array.isArray(list) ? list : []).forEach(function (t) {
+      if (t && typeof t.file === 'string' && /^[\w.\- äöüÄÖÜß]+\.json$/.test(t.file)) {
+        sel.appendChild(el('option', { value: t.file, text: String(t.name || t.file).slice(0, 60) }));
+      }
+    });
+    sel.disabled = sel.options.length <= 1;
+  } catch (e) {
+    sel.options[0].textContent = 'Vorlagen nicht verfügbar';
+  }
+}
+async function loadTemplate(file, label) {
+  try {
+    const res = await fetch(TEMPLATE_DIR + encodeURIComponent(file), { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.json();
+    if (!raw || typeof raw !== 'object' || (!Array.isArray(raw.groups) && !Array.isArray(raw.waypoints))) {
+      throw new Error('keine gültige Marschplan-Datei');
+    }
+    const p = sanitizePlan(raw);
+    p.name = String(label || p.name).slice(0, 60);
+    addPlan(p);
+    tplNotice('Vorlage „' + p.name + '“ als neuer Plan geladen.');
+  } catch (e) {
+    tplNotice('Vorlage konnte nicht geladen werden: ' + e.message, 'warn');
+  }
+}
+
 function renderPlanSelector(keepNameInput) {
   const sel = document.getElementById('planSel');
   sel.innerHTML = '';
@@ -1819,6 +1875,7 @@ function applyPlan(p) {
    ===================================================================== */
 renderQuickChips();
 bindUI();
+loadTemplateList();
 applyPlan(state);
 requestAnimationFrame(tick);
 
