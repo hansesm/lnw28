@@ -135,7 +135,19 @@
   .group-card .top input[type=text] { flex: 1 1 auto; font-weight: 600; }
   .group-card .bottom { display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap; font-size: 12px; }
   .group-card .bottom input[type=number] { width: 52px; }
-  .group-card .order { margin-left: auto; display: flex; gap: 3px; }
+
+  /* Drag & Drop (Griff links an Gruppen und Wegpunkten) */
+  .drag-handle {
+    flex: 0 0 auto; border: 0; background: none; padding: 0 2px; margin: 0;
+    color: var(--muted); font-size: 16px; line-height: 1; cursor: grab;
+    touch-action: none; user-select: none; border-radius: 4px;
+  }
+  .drag-handle:hover, .drag-handle:focus-visible { color: var(--navy); background: var(--blue-light); }
+  .sortable.dragging {
+    position: relative; z-index: 5; cursor: grabbing;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25); opacity: .96;
+  }
+  body.sorting, body.sorting * { cursor: grabbing !important; user-select: none; }
   .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
   .chip {
     border: 1px dashed var(--navy); border-radius: 12px; background: #fff;
@@ -157,6 +169,15 @@
   .wp-item .wp-coord { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .wp-item .wp-btns { display: flex; gap: 2px; flex: 0 0 auto; }
   .wp-item .wp-btns .icon-btn { width: 22px; height: 22px; font-size: 11px; }
+  .wp-item.has-halt { border-color: var(--gold); background: #fffdf6; }
+  .wp-item { flex-wrap: wrap; }
+  .wp-halt-row {
+    flex: 1 0 100%; display: flex; align-items: center; gap: 4px;
+    padding-left: 46px; font-size: 12px; color: var(--muted);
+  }
+  .wp-halt-row input[type=number] { width: 52px; flex: 0 0 auto; font-size: 12px; padding: 1px 4px; }
+  .wp-halt-row select { flex: 1 1 auto; font-size: 12px; padding: 1px 3px; }
+  .wp-halt-row select:disabled { opacity: .5; }
 
   .toggle-mode {
     display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px;
@@ -220,6 +241,13 @@
   .wp-icon span { transform: rotate(45deg); color: #fff; font-weight: 800; font-size: 12px; }
   .wp-icon.first { background: var(--blue); }
   .wp-icon.last { background: var(--danger); }
+  .wp-halt-badge {
+    position: absolute; left: 22px; top: -6px; white-space: nowrap;
+    background: var(--gold); color: var(--navy); border: 1px solid var(--navy);
+    border-radius: 8px; padding: 0 5px; font-size: 11px; font-weight: 800;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
+  #haltInfo { color: var(--navy); font-weight: 700; }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 800px) {
@@ -276,7 +304,7 @@
       <summary><span class="num-badge">1</span> Teilnehmer &amp; Organisation</summary>
       <div class="section-body">
         <div class="total-box"><b id="totalCount">0</b> <span>Teilnehmer gesamt</span></div>
-        <div class="hint">Gruppen marschieren in dieser Reihenfolge (oben = Spitze des Zuges). Anzahl, Personen pro Glied und Farbe je Gruppe einstellbar.</div>
+        <div class="hint">Gruppen marschieren in dieser Reihenfolge (oben = Spitze des Zuges); am Griff &#10303; ziehen, um sie umzusortieren. Anzahl, Personen pro Glied und Farbe je Gruppe einstellbar.</div>
         <div id="groupList"></div>
         <div class="row">
           <button class="btn primary" id="addGroupBtn" type="button">+ Gruppe hinzufügen</button>
@@ -309,7 +337,8 @@
           </select>
         </div>
         <div id="routeNotice" class="notice" hidden></div>
-        <div id="wpList" style="margin-top:8px"></div>
+        <div class="hint" style="margin-top:8px">Reihenfolge am Griff &#10303; ziehen. Je Wegpunkt kann ein Halt (Minuten) eingestellt werden: <b>in Straßenformation</b> – der ganze Zug bleibt stehen, wo er ist; <b>Sammeln</b> – die Glieder schließen bis zum Wegpunkt auf, der Halt beginnt, wenn alle angekommen sind.</div>
+        <div id="wpList"></div>
         <div class="row">
           <button class="btn small" id="reverseBtn" type="button">&#8645; Route umkehren</button>
           <button class="btn small" id="fitBtn" type="button">Route einpassen</button>
@@ -365,6 +394,7 @@
           <span>Teilnehmer</span><span id="sumParticipants">–</span>
           <span>Routenlänge</span><span id="sumLength">–</span>
           <span>Länge des Zuges</span><span id="sumColumn">–</span>
+          <span>Halte (Summe)</span><span id="sumHalts">–</span>
           <span>Spitze erreicht Ziel nach</span><span id="sumHead">–</span>
           <span>Gesamtdauer (bis letztes Glied)</span><span id="sumTotal">–</span>
         </div>
@@ -414,6 +444,7 @@
         <span class="stat">Strecke: <b id="ctrlLength">–</b></span>
         <span class="stat hide-sm">Zuglänge: <b id="ctrlColumn">–</b></span>
         <span class="stat">Dauer: <b id="ctrlDuration">–</b></span>
+        <span class="stat" id="haltInfo" hidden></span>
       </div>
     </div>
   </main>
@@ -439,6 +470,9 @@ const QUICK_GROUPS = [
   { name: 'Jungschützen', count: 16, perRow: 4, color: '#16a085' },
   { name: 'Gastverein', count: 20, perRow: 4, color: '#e67e22' }
 ];
+const HALT_MAX = 600;          // max. Haltezeit je Wegpunkt (Minuten)
+const GATHER_SPACING = 0.6;    // Gliederabstand beim Sammeln (m)
+const HALT_MODES = { formation: 'in Straßenformation', gather: 'Sammeln' };
 
 /* Standardroute entlang realer Straßen (Koordinaten aus OSM/OSRM):
    Antreten Alte Poststraße (Ost) -> Alte Poststraße -> Pfarrkirche St. Gertrud (Kirchweg)
@@ -459,7 +493,7 @@ function defaultPlan() {
       { name: 'Pfarrkirche St. Gertrud', lat: 51.158509, lng: 8.372061 },
       { name: 'Alte Poststraße / Schützenstraße', lat: 51.160081, lng: 8.377137 },
       { name: 'Schützenhalle', lat: 51.159293, lng: 8.377319 }
-    ],
+    ].map(function (w) { w.halt = 0; w.haltMode = 'formation'; return w; }),
     speedKmh: 4.0,
     stepLen: 0.75,
     rowSpacing: 1.5,
@@ -530,7 +564,11 @@ function sanitizePlan(raw) {
     p.waypoints = raw.waypoints.filter(function (w) {
       return w && Number.isFinite(+w.lat) && Number.isFinite(+w.lng) && Math.abs(+w.lat) <= 90 && Math.abs(+w.lng) <= 180;
     }).map(function (w, i) {
-      return { name: String(w.name != null ? w.name : 'Punkt ' + (i + 1)).slice(0, 80), lat: +w.lat, lng: +w.lng };
+      return {
+        name: String(w.name != null ? w.name : 'Punkt ' + (i + 1)).slice(0, 80), lat: +w.lat, lng: +w.lng,
+        halt: clamp(Math.round(num(w.halt, 0)), 0, HALT_MAX),
+        haltMode: w.haltMode === 'gather' ? 'gather' : 'formation'
+      };
     });
   }
   p.speedKmh = clamp(num(raw.speedKmh, d.speedKmh), 2, 7);
@@ -603,7 +641,7 @@ function exportPlan(src) {
     name: s.name,
     savedAt: new Date().toISOString(),
     groups: s.groups.map(function (g) { return { name: g.name, count: g.count, perRow: g.perRow, color: g.color }; }),
-    waypoints: s.waypoints.map(function (w) { return { name: w.name, lat: w.lat, lng: w.lng }; }),
+    waypoints: s.waypoints.map(function (w) { return { name: w.name, lat: w.lat, lng: w.lng, halt: w.halt, haltMode: w.haltMode }; }),
     speedKmh: s.speedKmh, stepLen: s.stepLen, rowSpacing: s.rowSpacing,
     lateralSpacing: s.lateralSpacing, groupGap: s.groupGap, dotSize: s.dotSize,
     followRoads: s.followRoads, routeProfile: s.routeProfile, showWaypoints: s.showWaypoints, showRoute: s.showRoute, loop: s.loop,
@@ -624,7 +662,7 @@ function toLL(x, y) { return [y / KY + LAT0, x / KX + LON0]; }
 /* =====================================================================
    5. Pfad: kumulative Distanzen & Position-bei-Distanz (Binärsuche)
    ===================================================================== */
-let path = { latlngs: [], pts: [], cum: [], len: 0 };
+let path = { latlngs: [], pts: [], cum: [], len: 0, wpDist: null };
 
 function buildPath(latlngs) {
   const pts = [], lls = [];
@@ -640,6 +678,34 @@ function buildPath(latlngs) {
   return { latlngs: lls, pts: pts, cum: cum, len: pts.length > 1 ? cum[cum.length - 1] : 0 };
 }
 function pathValid() { return path.pts.length >= 2 && path.len > 0.5; }
+
+/* Lage der Wegpunkte entlang des Pfades (m). Jeder Punkt wird ab der Fundstelle des
+   vorherigen gesucht; führt die Route mehrfach an ihm vorbei (Hin- und Rückweg auf
+   derselben Straße), zählt das erste Vorkommen. */
+function waypointDistances(lls) {
+  const p = path.pts, c = path.cum, res = [];
+  let from = 0, prev = 0;
+  lls.forEach(function (ll, k) {
+    if (k === 0) { res.push(0); return; }
+    if (k === lls.length - 1) { res.push(path.len); return; }
+    const q = toXY(ll[0], ll[1]);
+    const cand = [];
+    let best = Infinity;
+    for (let i = from; i < p.length - 1; i++) {
+      const dx = p[i + 1][0] - p[i][0], dy = p[i + 1][1] - p[i][1], l2 = dx * dx + dy * dy;
+      const f = l2 > 0 ? clamp(((q[0] - p[i][0]) * dx + (q[1] - p[i][1]) * dy) / l2, 0, 1) : 0;
+      const dist = Math.hypot(p[i][0] + dx * f - q[0], p[i][1] + dy * f - q[1]);
+      cand.push({ i: i, f: f, dist: dist });
+      if (dist < best) best = dist;
+    }
+    const hit = cand.find(function (x) { return x.dist <= best + 1.5; });
+    if (!hit) { res.push(prev); return; }
+    from = hit.i;
+    prev = Math.max(prev, c[hit.i] + (c[hit.i + 1] - c[hit.i]) * hit.f);
+    res.push(prev);
+  });
+  return res;
+}
 
 /* Position (x,y) bei Distanz d entlang des Pfades. d<0: Verlängerung rückwärts
    über das erste Segment hinaus (Aufstellung vor dem Start), d>len: Verlängerung
@@ -715,7 +781,60 @@ function totalParticipants() {
 function speedMs() { return state.speedKmh / 3.6; }
 function totalDuration() {
   if (!pathValid() || slots.length === 0) return 0;
-  return (path.len + columnLength) / speedMs();
+  return (path.len + columnLength) / speedMs() + buildStops().reduce(function (s, h) { return s + h.delta; }, 0);
+}
+
+/* ---------- Halte an Wegpunkten ----------
+   Jeder Halt liegt bei Distanz d entlang der Route. Ein Glied mit Abstand b hinter der
+   Spitze bleibt bei S = d - c·b stehen: c = 1 → Zug hält in Straßenformation,
+   c < 1 → Glieder schließen auf (Sammeln). Nach dem Halt marschiert die Spitze los und
+   jedes Glied folgt, sobald sein ursprünglicher Abstand wiederhergestellt ist.
+   delta = Verzögerung, die der Halt für alle nachfolgenden Bewegungen bedeutet. */
+function buildStops() {
+  const res = [];
+  if (!pathValid() || !path.wpDist) return res;
+  const v = speedMs();
+  const gatherC = clamp(GATHER_SPACING / state.rowSpacing, 0.05, 1);
+  state.waypoints.forEach(function (w) {
+    const d = path.wpDist.get(w);
+    if (!(w.halt > 0) || d === undefined) return;
+    const c = w.haltMode === 'gather' ? gatherC : 1;
+    res.push({ d: d, c: c, wait: w.halt * 60, delta: w.halt * 60 + columnLength * (1 - c) / v, wp: w });
+  });
+  return res.sort(function (a, b) { return a.d - b.d; });
+}
+/* Distanz entlang der Route eines Glieds mit Abstand b hinter der Spitze zur Zeit t */
+function slotDist(b, t, stops) {
+  const v = speedMs();
+  let a = 0, floor = -Infinity;   // a: aufgelaufene Verzögerung (s)
+  for (let k = 0; k < stops.length; k++) {
+    const s = stops[k];
+    // nie hinter den vorigen Haltepunkt zurück (z. B. Sammeln kurz vor einem Formationshalt)
+    const S = Math.max(s.d - s.c * b, floor);
+    floor = S;
+    const free = v * (t - a) - b;
+    if (free <= S) return free;
+    if (v * (t - a - s.delta) - b <= S) return S;
+    a += s.delta;
+  }
+  return v * (t - a) - b;
+}
+/* Halt, an dem die Spitze zur Zeit t steht (inkl. Restzeit), sonst null */
+function headHalt(t, stops) {
+  const v = speedMs();
+  let a = 0;
+  for (let k = 0; k < stops.length; k++) {
+    const s = stops[k];
+    if (v * (t - a) <= s.d) return null;
+    const end = a + s.delta + s.d / v;
+    if (t <= end) return { stop: s, remaining: end - t, gathering: end - t > s.wait };
+    a += s.delta;
+  }
+  return null;
+}
+/* Zeit, zu der die Spitze das Ziel erreicht (Halte am Ziel selbst nicht mitgezählt) */
+function headArrival(stops) {
+  return path.len / speedMs() + stops.reduce(function (s, h) { return h.d < path.len - 0.01 ? s + h.delta : s; }, 0);
 }
 
 /* =====================================================================
@@ -775,9 +894,13 @@ function renderWaypointMarkers() {
   const n = state.waypoints.length;
   state.waypoints.forEach(function (w, i) {
     const cls = 'wp-icon' + (i === 0 ? ' first' : '') + (i === n - 1 && n > 1 ? ' last' : '');
-    const icon = L.divIcon({ className: '', html: '<div class="' + cls + '"><span>' + (i + 1) + '</span></div>', iconSize: [26, 26], iconAnchor: [13, 31] });
+    const badge = w.halt > 0 ? '<div class="wp-halt-badge">⏸ ' + w.halt + '′' + (w.haltMode === 'gather' ? ' S' : '') + '</div>' : '';
+    const icon = L.divIcon({ className: '', html: '<div class="' + cls + '"><span>' + (i + 1) + '</span></div>' + badge, iconSize: [26, 26], iconAnchor: [13, 31] });
     const m = L.marker([w.lat, w.lng], { icon: icon, draggable: true, autoPan: true, zIndexOffset: 500 });
-    m.bindTooltip(function () { return (i + 1) + '. ' + escapeHtml(w.name); }, { direction: 'top', offset: [0, -28] });
+    m.bindTooltip(function () {
+      return (i + 1) + '. ' + escapeHtml(w.name) +
+        (w.halt > 0 ? '<br>Halt ' + w.halt + ' min – ' + HALT_MODES[w.haltMode] : '');
+    }, { direction: 'top', offset: [0, -28] });
     m.on('dragend', function () {
       const ll = m.getLatLng();
       w.lat = +ll.lat.toFixed(6); w.lng = +ll.lng.toFixed(6);
@@ -852,18 +975,18 @@ function scheduleRoute(immediate) {
 }
 async function computeRoute() {
   const id = ++routeReqId;
-  const wps = state.waypoints;
+  const wps = state.waypoints.slice(); // Kopie: Liste kann sich während des Routings ändern
   const straight = wps.map(function (w) { return [w.lat, w.lng]; });
   if (wps.length < 2) {
     routingStatusEl.hidden = true;
     setRouteNotice(wps.length === 0 ? 'Noch keine Wegpunkte. „Punkte setzen“ aktivieren und in die Karte klicken.' : 'Mindestens zwei Wegpunkte für eine Route setzen.', 'info');
-    setPath(straight);
+    setPath(straight, wps);
     return;
   }
   if (!state.followRoads) {
     routingStatusEl.hidden = true;
     setRouteNotice('', '');
-    setPath(straight);
+    setPath(straight, wps);
     return;
   }
   const key = wps.map(function (w) { return w.lng.toFixed(6) + ',' + w.lat.toFixed(6); }).join(';');
@@ -874,19 +997,19 @@ async function computeRoute() {
     const cached = routeCache.get(cacheKey);
     routingStatusEl.hidden = true;
     setRouteNotice(cached.notice || '', 'warn');
-    setPath(cached.coords);
+    setPath(cached.route.coords, wps, cached.route.snapped);
     return;
   }
   routingStatusEl.hidden = false;
   let lastErr = null;
   for (let r = 0; r < routers.length; r++) {
     try {
-      const coords = await fetchRoute(routers[r].url(key));
-      routeCache.set(cacheKey, { coords: coords, notice: routers[r].notice });
+      const route = await fetchRoute(routers[r].url(key));
+      routeCache.set(cacheKey, { route: route, notice: routers[r].notice });
       if (id !== routeReqId) return;
       routingStatusEl.hidden = true;
       setRouteNotice(routers[r].notice || '', 'warn');
-      setPath(coords);
+      setPath(route.coords, wps, route.snapped);
       return;
     } catch (err) {
       lastErr = err;
@@ -895,7 +1018,7 @@ async function computeRoute() {
   }
   routingStatusEl.hidden = true;
   setRouteNotice('Straßen-Routing nicht erreichbar (' + (lastErr && lastErr.message ? lastErr.message : 'Fehler') + ') – es werden gerade Verbindungen verwendet.', 'warn');
-  setPath(straight);
+  setPath(straight, wps);
 }
 /* Router je Wegenetz (jeweils mit Ausweich-Server):
    - street: Auto-Profil → nur Fahrstraßen, keine Fuß-/Feldwege (beachtet Einbahnstraßen).
@@ -921,13 +1044,21 @@ async function fetchRoute(url) {
     if (data.code !== 'Ok' || !data.routes || !data.routes.length) throw new Error(data.code || 'Keine Route');
     const coords = data.routes[0].geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
     if (coords.length < 2) throw new Error('Leere Geometrie');
-    return coords;
+    // auf die Straße eingerastete Wegpunkte (liegen exakt auf der Geometrie)
+    const snapped = Array.isArray(data.waypoints) ? data.waypoints.map(function (w) { return [w.location[1], w.location[0]]; }) : null;
+    return { coords: coords, snapped: snapped };
   } finally {
     clearTimeout(timeout);
   }
 }
-function setPath(latlngs) {
+/* wps: Wegpunkte, aus denen die Route berechnet wurde; snapped: deren Lage auf der Route */
+function setPath(latlngs, wps, snapped) {
   path = buildPath(latlngs);
+  path.wpDist = new Map();
+  if (pathValid()) {
+    const lls = snapped && snapped.length === wps.length ? snapped : wps.map(function (w) { return [w.lat, w.lng]; });
+    waypointDistances(lls).forEach(function (d, i) { path.wpDist.set(wps[i], d); });
+  }
   routeLine.setLatLngs(path.latlngs);
   routeCasing.setLatLngs(path.latlngs);
   updateDotVisibility();
@@ -947,8 +1078,18 @@ function renderFrame() {
   document.getElementById('timeDisplay').textContent = fmtTime(anim.t) + ' / ' + fmtTime(T);
   if (!scrubbing) document.getElementById('scrub').value = T > 0 ? Math.round(anim.t / T * 1000) : 0;
 
-  if (!pathValid() || slots.length === 0) { doneLine.setLatLngs([]); return; }
-  const head = speedMs() * anim.t;
+  const haltEl = document.getElementById('haltInfo');
+  if (!pathValid() || slots.length === 0) { doneLine.setLatLngs([]); haltEl.hidden = true; return; }
+  const stops = buildStops();
+  const head = slotDist(0, anim.t, stops);
+
+  // Anzeige, solange die Spitze an einem Halt steht
+  const hh = headHalt(anim.t, stops);
+  haltEl.hidden = !hh;
+  if (hh) {
+    haltEl.textContent = '⏸ ' + (hh.gathering ? 'Sammeln' : 'Halt') + ': ' + (hh.stop.wp.name || 'Wegpunkt') +
+      ' – noch ' + fmtTime(hh.remaining);
+  }
 
   // bereits gelaufener Abschnitt (Spitze)
   const doneLL = [];
@@ -959,7 +1100,7 @@ function renderFrame() {
 
   for (let i = 0; i < slots.length; i++) {
     const s = slots[i];
-    const d = head - s.back;
+    const d = slotDist(s.back, anim.t, stops);
     // Glieder, die das Ziel erreicht haben, werden ausgeblendet ("eingerückt")
     if (d > path.len) {
       if (s.shown) { dotLayer.removeLayer(s.marker); s.shown = false; }
@@ -1032,7 +1173,7 @@ function renderGroups() {
   list.innerHTML = '';
   if (state.groups.length === 0) list.appendChild(el('div', { class: 'hint', text: 'Keine Gruppen – bitte eine Gruppe hinzufügen.' }));
   state.groups.forEach(function (g, i) {
-    const card = el('div', { class: 'group-card' });
+    const card = el('div', { class: 'group-card sortable' });
     card.style.borderLeftColor = g.color;
     const rowsInfo = el('span', { class: 'muted' });
     const updateRowsInfo = function () {
@@ -1069,25 +1210,99 @@ function renderGroups() {
       g.perRow = clamp(v, 1, 20); updateRowsInfo(); formationChanged();
     });
     per.addEventListener('change', function () { per.value = g.perRow; });
-    const up = el('button', { class: 'icon-btn', type: 'button', title: 'Nach vorne', text: '▲', disabled: i === 0 });
-    up.addEventListener('click', function () { moveItem(state.groups, i, -1); structureChanged(); });
-    const down = el('button', { class: 'icon-btn', type: 'button', title: 'Nach hinten', text: '▼', disabled: i === state.groups.length - 1 });
-    down.addEventListener('click', function () { moveItem(state.groups, i, 1); structureChanged(); });
 
-    card.appendChild(el('div', { class: 'top' }, [color, name, del]));
+    card.appendChild(el('div', { class: 'top' }, [dragHandle('Gruppe verschieben'), color, name, del]));
     card.appendChild(el('div', { class: 'bottom' }, [
-      count, el('span', { text: 'Pers.' }), per, el('span', { text: 'nebeneinander' }), rowsInfo,
-      el('span', { class: 'order' }, [up, down])
+      count, el('span', { text: 'Pers.' }), per, el('span', { text: 'nebeneinander' }), rowsInfo
     ]));
     list.appendChild(card);
   });
   updateTotal();
   renderLegend();
 }
-function moveItem(arr, i, dir) {
-  const j = i + dir;
-  if (j < 0 || j >= arr.length) return;
-  const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+function moveItem(arr, from, to) {
+  if (to < 0 || to >= arr.length || from === to) return;
+  arr.splice(to, 0, arr.splice(from, 1)[0]);
+}
+
+/* ---------- Drag & Drop-Sortierung ----------
+   Pointer-Events statt HTML5-Drag&Drop, damit es auch per Touch funktioniert.
+   Gezogen wird am .drag-handle eines .sortable-Elements; das Element wandert live in
+   der Liste mit, erst beim Loslassen wird onMove(von, nach) aufgerufen.
+   Tastatur: Griff fokussieren, dann Pfeil hoch/runter. */
+function dragHandle(title) {
+  return el('button', { class: 'drag-handle', type: 'button', title: title + ' (ziehen oder Pfeiltasten)', 'aria-label': title, text: '⠿' });
+}
+function sortDragging() { return document.body.classList.contains('sorting'); }
+function makeSortable(list, onMove) {
+  const items = function () { return Array.from(list.children).filter(function (c) { return c.classList.contains('sortable'); }); };
+  const focusHandle = function (i) {
+    const it = items()[i];
+    const h = it && it.querySelector('.drag-handle');
+    if (h) h.focus();
+  };
+  list.addEventListener('keydown', function (e) {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault();
+    const from = items().indexOf(handle.closest('.sortable'));
+    const to = from + (e.key === 'ArrowUp' ? -1 : 1);
+    if (from < 0 || to < 0 || to >= items().length) return;
+    onMove(from, to);
+    focusHandle(to);
+  });
+  list.addEventListener('pointerdown', function (e) {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle || e.button !== 0) return;
+    const item = handle.closest('.sortable');
+    const from = items().indexOf(item);
+    if (from < 0) return;
+    e.preventDefault();
+    try { handle.setPointerCapture(e.pointerId); } catch (err) { /* nicht kritisch */ }
+    const pid = e.pointerId;
+    const grabDy = e.clientY - item.getBoundingClientRect().top;
+    let y = e.clientY, raf = null;
+    item.classList.add('dragging');
+    document.body.classList.add('sorting');
+
+    const update = function () {
+      // vor das erste Element einsortieren, dessen Mitte unterhalb des Zeigers liegt
+      const others = items().filter(function (c) { return c !== item; });
+      const before = others.find(function (c) { const r = c.getBoundingClientRect(); return y < r.top + r.height / 2; });
+      const ref = before || (others.length ? others[others.length - 1].nextSibling : null);
+      if (ref !== item && ref !== item.nextSibling) list.insertBefore(item, ref);
+      // Element unter dem Zeiger halten
+      item.style.transform = '';
+      item.style.transform = 'translateY(' + (y - grabDy - item.getBoundingClientRect().top) + 'px)';
+    };
+    // Seitenleiste automatisch scrollen, solange der Zeiger nahe am Rand ist
+    const autoScroll = function () {
+      const sr = sidebar.getBoundingClientRect();
+      const step = y < sr.top + 40 ? -Math.ceil((sr.top + 40 - y) / 4)
+        : y > sr.bottom - 40 ? Math.ceil((y - sr.bottom + 40) / 4) : 0;
+      if (step) { sidebar.scrollTop += step; update(); }
+      raf = requestAnimationFrame(autoScroll);
+    };
+    raf = requestAnimationFrame(autoScroll);
+
+    const move = function (ev) { if (ev.pointerId === pid) { y = ev.clientY; update(); } };
+    const end = function (ev) {
+      if (ev.pointerId !== pid) return;
+      cancelAnimationFrame(raf);
+      if (ev.type === 'pointerup') { y = ev.clientY; update(); }
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+      item.classList.remove('dragging');
+      item.style.transform = '';
+      document.body.classList.remove('sorting');
+      const to = items().indexOf(item);
+      if (to >= 0 && to !== from) onMove(from, to);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  });
 }
 function updateTotal() {
   document.getElementById('totalCount').textContent = totalParticipants();
@@ -1142,15 +1357,33 @@ function renderWaypointList() {
       const b = el('button', { class: 'icon-btn' + (extra || ''), type: 'button', title: title, text: txt, disabled: !!disabled });
       b.addEventListener('click', fn); return b;
     };
-    const item = el('div', { class: 'wp-item' }, [
+    // Halt am Wegpunkt: Dauer in Minuten + Verhalten
+    const halt = el('input', { type: 'number', min: 0, max: HALT_MAX, step: 1, value: w.halt || 0, title: 'Haltezeit in Minuten (0 = kein Halt)' });
+    const mode = el('select', { title: 'Verhalten beim Halt', 'aria-label': 'Verhalten beim Halt' },
+      Object.keys(HALT_MODES).map(function (k) { return el('option', { value: k, text: HALT_MODES[k] }); }));
+    mode.value = w.haltMode;
+    mode.disabled = !(w.halt > 0);
+    halt.addEventListener('input', function () {
+      const v = parseInt(halt.value, 10);
+      if (!Number.isFinite(v)) return;
+      w.halt = clamp(v, 0, HALT_MAX);
+      mode.disabled = !(w.halt > 0);
+      item.classList.toggle('has-halt', w.halt > 0);
+      haltChanged();
+    });
+    halt.addEventListener('change', function () { halt.value = w.halt; });
+    mode.addEventListener('change', function () { w.haltMode = mode.value === 'gather' ? 'gather' : 'formation'; haltChanged(); });
+    const haltRow = el('div', { class: 'wp-halt-row' }, [el('span', { text: 'Halt' }), halt, el('span', { text: 'min' }), mode]);
+
+    const item = el('div', { class: 'wp-item sortable' + (w.halt > 0 ? ' has-halt' : '') }, [
+      dragHandle('Wegpunkt verschieben'),
       el('div', { class: 'wp-num', text: String(i + 1) }),
       el('div', { class: 'wp-main' }, [name, coord]),
       el('div', { class: 'wp-btns' }, [
         btn('◎', 'Auf Karte zeigen', function () { map.setView([w.lat, w.lng], Math.max(map.getZoom(), 18)); closeSidebarMobile(); }),
-        btn('▲', 'Nach oben', function () { moveItem(state.waypoints, i, -1); waypointsChanged(); }, i === 0),
-        btn('▼', 'Nach unten', function () { moveItem(state.waypoints, i, 1); waypointsChanged(); }, i === state.waypoints.length - 1),
         btn('✕', 'Löschen', function () { state.waypoints.splice(i, 1); waypointsChanged(); }, false, ' del')
-      ])
+      ]),
+      haltRow
     ]);
     list.appendChild(item);
   });
@@ -1161,8 +1394,14 @@ function waypointsChanged(immediate) {
   scheduleRoute(immediate);
   persist();
 }
+/* Haltezeit/-art geändert: Route bleibt gleich, nur der Zeitablauf ändert sich */
+function haltChanged() {
+  renderWaypointMarkers();
+  anim.t = clamp(anim.t, 0, totalDuration());
+  updateStats(); renderFrame(); persist();
+}
 function addWaypoint(lat, lng, name) {
-  const w = { name: name || ('Punkt ' + (state.waypoints.length + 1)), lat: +lat.toFixed(6), lng: +lng.toFixed(6) };
+  const w = { name: name || ('Punkt ' + (state.waypoints.length + 1)), lat: +lat.toFixed(6), lng: +lng.toFixed(6), halt: 0, haltMode: 'formation' };
   state.waypoints.push(w);
   waypointsChanged();
   if (!name) reverseName(w);
@@ -1179,8 +1418,10 @@ async function reverseName(w) {
     const road = a && (a.road || a.pedestrian || a.footway || a.path || a.square || a.place);
     if (road && w.name === original && state.waypoints.indexOf(w) >= 0) {
       w.name = road + (a.house_number ? ' ' + a.house_number : '');
-      // Marker nicht neu aufbauen (Tooltip liest den Namen dynamisch) – sonst bricht ein laufendes Ziehen ab
-      renderWaypointList(); persist();
+      // Marker nicht neu aufbauen (Tooltip liest den Namen dynamisch) – sonst bricht ein laufendes Ziehen ab;
+      // ebenso die Liste nicht, während dort sortiert wird
+      if (!sortDragging()) renderWaypointList();
+      persist();
     }
   } catch (e) { /* optional */ }
 }
@@ -1261,7 +1502,7 @@ function syncSpeedUI(skip) {
 /* Bei Tempoänderung die bereits zurückgelegte Strecke beibehalten (kein Springen) */
 function speedChanged(oldV) {
   const v = speedMs();
-  if (Number.isFinite(oldV) && oldV > 0 && v > 0) anim.t = anim.t * oldV / v;
+  if (Number.isFinite(oldV) && oldV > 0 && v > 0 && buildStops().length === 0) anim.t = anim.t * oldV / v;
   anim.t = clamp(anim.t, 0, totalDuration());
   updateStats(); renderFrame(); persist();
 }
@@ -1270,8 +1511,12 @@ function updateStats() {
   const n = totalParticipants();
   const valid = pathValid();
   const T = totalDuration();
-  const headT = valid ? path.len / speedMs() : 0;
+  const stops = buildStops();
+  const headT = valid ? headArrival(stops) : 0;
+  const haltSum = stops.reduce(function (s, h) { return s + h.wait; }, 0);
   document.getElementById('sumParticipants').textContent = n;
+  document.getElementById('sumHalts').textContent = stops.length
+    ? stops.length + ' × · ' + fmtTime(haltSum) + ' min' : '–';
   document.getElementById('sumLength').textContent = valid ? fmtDist(path.len) : '–';
   document.getElementById('sumColumn').textContent = slots.length ? fmtNum(columnLength, 1) + ' m' : '–';
   document.getElementById('sumHead').textContent = valid ? fmtTime(headT) + ' min' : '–';
@@ -1319,6 +1564,8 @@ function bindUI() {
     state.groups.push({ id: uid(), name: 'Neue Gruppe', count: 10, perRow: 4, color: '#555555' });
     structureChanged();
   });
+  makeSortable(document.getElementById('groupList'), function (from, to) { moveItem(state.groups, from, to); structureChanged(); });
+  makeSortable(document.getElementById('wpList'), function (from, to) { moveItem(state.waypoints, from, to); waypointsChanged(); });
 
   // Punkte-setzen-Modus
   const modeToggle = document.getElementById('addModeToggle');
